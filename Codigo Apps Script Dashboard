@@ -1,0 +1,39 @@
+function actualizarFirebase() {
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  sheet.clear();
+
+  sheet.appendRow(["UID", "Lector", "Info", "Contenido", "Fecha"]);
+
+  var url = "https://trazabilidad-muestras-tfg-default-rtdb.europe-west1.firebasedatabase.app/Muestras.json";
+
+  var response = UrlFetchApp.fetch(url);
+  var data = JSON.parse(response.getContentText());
+
+  for (var uid in data) {
+
+    if (!data[uid].Historial) continue;
+
+    var historial = data[uid].Historial;
+
+    for (var id in historial) {
+
+      var item = historial[id];
+
+      sheet.appendRow([
+        uid,
+        item.num_lector || "",
+        item.info || "",
+        limpiarTexto(item.contenido_tarjeta || ""),
+        item.fecha_hora || ""
+      ]);
+    }
+  }
+}
+
+// limpia caracteres raros del RFID
+function limpiarTexto(texto) {
+  return texto
+    .replace(/[\u0000-\u001F\u007F]/g, "") // caracteres invisibles
+    .trim();
+}
